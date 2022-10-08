@@ -179,7 +179,7 @@ def update_record():
       username = :username,
       password = :password
       
-      WHERE oid = oid""",
+      WHERE oid = :oid""",
                       {
                         'user': user_entry.get(),
                         'website': website_entry.get(),
