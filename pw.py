@@ -203,9 +203,6 @@ def add_new_record():
                           'password': pw_entry.get()
                       })
     my_cursor.execute("SELECT * from users")
-    dbdata = my_cursor.fetchall()
-    for i in dbdata:
-        print(i)
     # Commit changes.
     conn.commit()
     # Close the connection to database.
@@ -232,18 +229,20 @@ def clear_boxes():
 
 
 # Remove records.
-def remove_records():
+def remove_selected_records():
     response = messagebox.askyesno("Warning!!!", "This will remove everything from the database. Are you sure?")
     if response == 1:
-        # Get the record number.
+        # Get the record(s) we want to delete.
         selected = my_tree.selection()
+        # Add the record(s) we want to delete to a list.
+        to_delete = []
+        # Add selected record(s) to the deletion list.
         for record in selected:
-            my_tree.delete(record)
+            to_delete.append(my_tree.item(record, 'values')[0])
         # Create a database or connect to an existing one.
         conn = sqlite3.connect('pw_storage.db')
         my_cursor = conn.cursor()
-        # Delete selected records.
-        my_cursor.execute("DELETE from users WHERE oid=" + id_entry.get())
+        my_cursor.executemany("DELETE FROM users WHERE oid= ?", [(a,) for a in to_delete])
         # Commit changes.
         conn.commit()
         # Close the connection to database.
@@ -252,7 +251,10 @@ def remove_records():
         messagebox.showinfo("Deleted!", "Selected record has been deleted from the database!")
         # Clear entry boxes.
         clear_boxes()
-
+        # Clear the treeview table.
+        my_tree.delete(*my_tree.get_children())
+        # Query the database again to see the changes.
+        query()
 
 
 def remove_all_records():
@@ -330,7 +332,7 @@ update_button = Button(button_frame, text="Update Record", command=update_record
 # Add button.
 add_button = Button(button_frame, text="Add New Record", command=add_new_record).grid(row=0, column=1, padx=20, pady=20)
 # Remove selected record button.
-remove_selected_button = Button(button_frame, text="Remove Selected Records").grid(row=0, column=2, padx=20, pady=20)
+remove_selected_button = Button(button_frame, text="Remove Selected Records", command=remove_selected_records).grid(row=0, column=2, padx=20, pady=20)
 # Remove all records button.
 remove_all_button = Button(button_frame, text="Remove All Records", command=remove_all_records).grid(row=0, column=3, padx=20, pady=20)
 # Clear boxes.
