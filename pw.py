@@ -2,6 +2,7 @@
 import sqlite3
 import os
 from tkinter import *
+from tkinter import messagebox
 from PIL import ImageTk, Image
 import mysql.connector
 import csv
@@ -10,41 +11,37 @@ from tkinter import messagebox
 
 
 # Connect to SQLite3.
-mydb = sqlite3.connect('pw_storage.db')
+conn = sqlite3.connect('pw_storage.db')
 
 # Check to see if connection to SQLite3 was created.
-# print(mydb)
+# print(conn)
 
 # Create a cursor and initialize it.
-my_cursor = mydb.cursor()
-
-# # Create database.
-# my_cursor.execute("CREATE DATABASE")
+my_cursor = conn.cursor()
 
 # # Test if database was created.
 # my_cursor.execute("SHOW DATABASES")
 # for db in my_cursor:
 #     print(db)
 
-# # Drop table.
+# # Drop/delete table.
 # my_cursor.execute("DROP TABLE users")
 
 # Create a table
 my_cursor.execute("""CREATE TABLE IF NOT EXISTS users (
-    user text NOT NULL,
-	website text NOT NULL,
-	email text NOT NULL,
+    user text,
+	website text,
+	email text,
 	username text,
 	password text)""")
+
 
 # Query the database.
 def query():
     # Create a database or connect to an existing one.
-    mydb = sqlite3.connect('pw_storage.db')
-
-    # Create a cursor and initialize it.
-    my_cursor = mydb.cursor()
-
+    conn = sqlite3.connect('pw_storage.db')
+    my_cursor = conn.cursor()
+    # Query the database
     my_cursor.execute("SELECT  rowid, * FROM users")
     records = my_cursor.fetchall()
     # Add database data to the treeview.
@@ -59,12 +56,10 @@ def query():
                            values=(i[0], i[1], i[2], i[3], i[4], i[5]), tags=("oddrow",))
         # increment counter.
         count += 1
-
-
     # Commit changes.
-    mydb.commit()
+    conn.commit()
     # Close the connection to database.
-    mydb.close()
+    conn.close()
 
 
 # # Show table.
@@ -102,16 +97,20 @@ tree_frame.pack(fill="x", padx=20, pady=20)
 tree_scroll = Scrollbar(tree_frame)
 tree_scroll.pack(side=RIGHT, fill=Y)
 
-# Create the Treeview.
+# Create the Treeview and pack it on the screen.
 my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode='extended')
 my_tree.pack(fill="x")
 
 # Configure the Scrollbar.
 tree_scroll.config(command=my_tree.yview)
 
-# Define the columns.
+# Connect to SQLite3.
+conn = sqlite3.connect('pw_storage.db')
+my_cursor = conn.cursor()
+# Define the columns of the treeview.
 table = my_cursor.execute("SELECT * FROM users")
 data = my_cursor.fetchall()
+
 columns = ["ID"]
 for i in range(0, len(table.description)):
     columns.append(table.description[i][0])
@@ -132,19 +131,14 @@ my_tree.tag_configure('oddrow', background="white")
 my_tree.tag_configure('evenrow', background="lightblue")
 
 
-
-
 # Select a record.
 def select_record(event):
     # Clear entry boxes.
     clear_boxes()
-
     # Get the selected item from a treeview.
     selected = my_tree.focus()
-
     # Get the record values.
     values = my_tree.item(selected, 'values')
-
     # After a record is selected on the treeview, show the values in entry boxes.
     str_id.set(values[0])
     user_entry.insert(0, values[1])
@@ -154,9 +148,9 @@ def select_record(event):
     pw_entry.insert(0, values[5])
 
 
-# Update Record.
+# Update a record.
 def update_record():
-    # Gett the record number.
+    # Get the record number.
     selected = my_tree.focus()
     # Update record.
     my_tree.item(selected, text="", values=(
@@ -167,12 +161,9 @@ def update_record():
         username_entry.get(),
         pw_entry.get(),))
     # Create a database or connect to an existing one.
-    mydb = sqlite3.connect('pw_storage.db')
-
-    # Create a cursor instance.
-    my_cursor = mydb.cursor()
-
-    my_cursor.execute("""UPDATE users SET
+    conn = sqlite3.connect('pw_storage.db')
+    my_cursor = conn.cursor()
+    my_cursor.execute("""UPDATE users SET 
       user = :user,
       website = :website,
       email = :email,
@@ -188,36 +179,45 @@ def update_record():
                         'password': pw_entry.get(),
                         'oid': id_entry.get()
                         })
-
     # Commit changes.
-    mydb.commit()
+    conn.commit()
     # Close the connection to database.
-    mydb.close()
+    conn.close()
+    clear_boxes()
+    # Add a message after updating the database.
+    messagebox.showinfo("Updated!", "Selected record has been updated!")
 
 
-
-# Add a new record.
+# Add a new record to the database.
 def add_new_record():
     # Create a database or connect to an existing one.
-    mydb = sqlite3.connect('pw_storage.db')
-
-    # Create a cursor and initialize it.
-    my_cursor = mydb.cursor()
-
+    conn = sqlite3.connect('pw_storage.db')
+    my_cursor = conn.cursor()
     # Add new record.
     my_cursor.execute("INSERT INTO users VALUES (:user, :website, :email, :username, :password)",
                       {
-
                           'user': user_entry.get(),
                           'website': website_entry.get(),
                           'email': email_entry.get(),
                           'username': username_entry.get(),
                           'password': pw_entry.get()
                       })
+    my_cursor.execute("SELECT * from users")
+    dbdata = my_cursor.fetchall()
+    for i in dbdata:
+        print(i)
     # Commit changes.
-    mydb.commit()
+    conn.commit()
     # Close the connection to database.
-    mydb.close()
+    conn.close()
+    # Show a message if the action completed successfully.
+    messagebox.showinfo("Added New Record!", "A new record has been added to the database!")
+    # Clear entry boxes.
+    clear_boxes()
+    # Clear the treeview table.
+    my_tree.delete(*my_tree.get_children())
+    # Query the database again to see the changes.
+    query()
 
 
 # Clear the boxes.
@@ -230,12 +230,56 @@ def clear_boxes():
     username_entry.delete(0, END)
     pw_entry.delete(0, END)
 
+
 # Remove records.
 def remove_records():
-    pass
+    response = messagebox.askyesno("Warning!!!", "This will remove everything from the database. Are you sure?")
+    if response == 1:
+        # Get the record number.
+        selected = my_tree.selection()
+        for record in selected:
+            my_tree.delete(record)
+        # Create a database or connect to an existing one.
+        conn = sqlite3.connect('pw_storage.db')
+        my_cursor = conn.cursor()
+        # Delete selected records.
+        my_cursor.execute("DELETE from users WHERE oid=" + id_entry.get())
+        # Commit changes.
+        conn.commit()
+        # Close the connection to database.
+        conn.close()
+        # Show a message if the action completed successfully.
+        messagebox.showinfo("Deleted!", "Selected record has been deleted from the database!")
+        # Clear entry boxes.
+        clear_boxes()
 
 
-# Add record Enry Boxes.
+
+def remove_all_records():
+    response = messagebox.askyesno("Warning!!!", "This will remove everything from the database. Are you sure?")
+    if response == 1:
+        for record in my_tree.get_children():
+            my_tree.delete(record)
+        # Create a database or connect to an existing one.
+        conn = sqlite3.connect('pw_storage.db')
+        my_cursor = conn.cursor()
+        # Delete everything from the database.
+        my_cursor.execute("DROP TABLE users")
+        # Commit changes.
+        conn.commit()
+        # Close the connection to database.
+        conn.close()
+        # Show a message if the action completed successfully.
+        messagebox.showinfo("Deleted!", "All records have been deleted from the database! You need to restart the application!")
+        # Clear entry boxes.
+        clear_boxes()
+        root.destroy()
+    else:
+        pass
+
+
+
+# Add record Entry Boxes.
 data_frame = LabelFrame(root, text="Selected Record")
 data_frame.pack(fill="x", padx=20)
 
@@ -286,18 +330,18 @@ update_button = Button(button_frame, text="Update Record", command=update_record
 # Add button.
 add_button = Button(button_frame, text="Add New Record", command=add_new_record).grid(row=0, column=1, padx=20, pady=20)
 # Remove selected record button.
-remove_selected_button = Button(button_frame, text="Remove Selected").grid(row=0, column=2, padx=20, pady=20)
+remove_selected_button = Button(button_frame, text="Remove Selected Records").grid(row=0, column=2, padx=20, pady=20)
 # Remove all records button.
-remove_all_button = Button(button_frame, text="Remove All Records").grid(row=0, column=3, padx=20, pady=20)
+remove_all_button = Button(button_frame, text="Remove All Records", command=remove_all_records).grid(row=0, column=3, padx=20, pady=20)
 # Clear boxes.
 clear_boxes_button = Button(button_frame, text="Clear Boxes", command=clear_boxes).grid(row=0, column=4, padx=20, pady=20)
 
-# Bind the treeview to selected.
+# Bind the treeview to selected_record function.
 my_tree.bind("<ButtonRelease-1>", select_record)
-
 
 # Query the database at startup.
 query()
-my_cursor.close()
-mydb.close()
+# Commit and close the database.
+conn.commit()
+conn.close()
 root.mainloop()
