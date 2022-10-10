@@ -258,7 +258,7 @@ def remove_selected_records():
 
 
 def remove_all_records():
-    response = messagebox.askyesno("Warning!!!", "This will remove everything from the database. Are you sure?")
+    response = messagebox.askyesno("Warning!!!", "This will remove selected records from the database. Are you sure?")
     if response == 1:
         for record in my_tree.get_children():
             my_tree.delete(record)
