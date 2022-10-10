@@ -6,7 +6,7 @@ HOW TO USE:
 - WEBSITE column: this is the website that you want to store the password for.
 - EMAIL column: in this column you enter the name of the website that you want to store the password for.
 - USERNAME column: here we type in the username that we use to log into the WEBSITE.
-- PASSWORD column: the password used to login for the website.
+- PASSWORD column: the password used to login.
 BUTTONS/COMMANDS:
 - "Update Record" --> updates the selected record from the database.
 - "Add New Record" --> Adds a new record to the database.
