@@ -62,6 +62,70 @@ def query():
     conn.close()
 
 
+def search_box(event):
+    # Add database data to the treeview.
+    global count
+    count = 0
+    typed = search_entry.get()
+    if typed != "":
+        # Clear the treeview table.
+        my_tree.delete(*my_tree.get_children())
+        # Create a database or connect to an existing one.
+        conn = sqlite3.connect('pw_storage.db')
+        my_cursor = conn.cursor()
+        # Query the database
+        my_cursor.execute("SELECT  rowid, * FROM users")
+        # Fetchall from database.
+        records = my_cursor.fetchall()
+        # Loop through the records and
+        for x in records:
+            print(x)
+            if (typed.lower() in str(x[0]).lower()
+                    or typed.lower() in str(x[1]).lower()
+                    or typed.lower() in str(x[2]).lower()
+                    or typed.lower() in str(x[3]).lower()
+                    or typed.lower() in str(x[4]).lower()
+                    or typed.lower() in str(x[5]).lower()):
+                if count % 2 == 0:
+                    my_tree.insert(parent="", index="end", iid=count, text="",
+                                   values=(x[0], x[1], x[2], x[3], x[4], x[5]), tags=("evenrow",))
+                else:
+                    my_tree.insert(parent="", index="end", iid=count, text="",
+                                   values=(x[0], x[1], x[2], x[3], x[4], x[5]), tags=("oddrow",))
+                # increment counter.
+                count += 1
+        # Commit changes.
+        conn.commit()
+        # Close the connection to database.
+        conn.close()
+    else:
+        # Clear the treeview table.
+        my_tree.delete(*my_tree.get_children())
+        # Create a database or connect to an existing one.
+        conn = sqlite3.connect('pw_storage.db')
+        my_cursor = conn.cursor()
+        # Query the database
+        my_cursor.execute("SELECT  rowid, * FROM users")
+        # Fetchall from database.
+        records = my_cursor.fetchall()
+        # Add database data to the treeview.
+        count = 0
+        data = records
+        for i in data:
+            if count % 2 == 0:
+                my_tree.insert(parent="", index="end", iid=count, text="",
+                               values=(i[0], i[1], i[2], i[3], i[4], i[5]), tags=("evenrow",))
+            else:
+                my_tree.insert(parent="", index="end", iid=count, text="",
+                               values=(i[0], i[1], i[2], i[3], i[4], i[5]), tags=("oddrow",))
+            # increment counter.
+            count += 1
+        # Commit changes.
+        conn.commit()
+        # Close the connection to database.
+        conn.close()
+
+
 # # Show table.
 # my_cursor.execute("SELECT * FROM users")
 # # print(my_cursor.description)
@@ -228,9 +292,11 @@ def clear_boxes():
     pw_entry.delete(0, END)
 
 
+
+
 # Remove records.
 def remove_selected_records():
-    response = messagebox.askyesno("Warning!!!", "This will remove everything from the database. Are you sure?")
+    response = messagebox.askyesno("Warning!!!", "This will remove selected records from the database. Are you sure?")
     if response == 1:
         # Get the record(s) we want to delete.
         selected = my_tree.selection()
@@ -248,7 +314,7 @@ def remove_selected_records():
         # Close the connection to database.
         conn.close()
         # Show a message if the action completed successfully.
-        messagebox.showinfo("Deleted!", "Selected record has been deleted from the database!")
+        messagebox.showinfo("Deleted!", "Selected records have been deleted from the database!")
         # Clear entry boxes.
         clear_boxes()
         # Clear the treeview table.
@@ -278,7 +344,6 @@ def remove_all_records():
         root.destroy()
     else:
         pass
-
 
 
 # Add record Entry Boxes.
@@ -337,9 +402,16 @@ remove_selected_button = Button(button_frame, text="Remove Selected Records", co
 remove_all_button = Button(button_frame, text="Remove All Records", command=remove_all_records).grid(row=0, column=3, padx=20, pady=20)
 # Clear boxes.
 clear_boxes_button = Button(button_frame, text="Clear Boxes", command=clear_boxes).grid(row=0, column=4, padx=20, pady=20)
+# Create asearch label and entry box.
+search_label = Label(button_frame, text="Search...")
+search_label.grid(row=0, column=5, padx=10, pady=10)
+search_entry = Entry(button_frame)
+search_entry.grid(row=0, column=6, padx=10, pady=10)
 
 # Bind the treeview to selected_record function.
 my_tree.bind("<ButtonRelease-1>", select_record)
+# Bind the search entry box.
+search_entry.bind("<KeyRelease>", search_box)
 
 # Query the database at startup.
 query()
