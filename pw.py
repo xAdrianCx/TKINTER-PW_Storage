@@ -2,10 +2,6 @@
 import sqlite3
 import os
 from tkinter import *
-from tkinter import messagebox
-from PIL import ImageTk, Image
-import mysql.connector
-import csv
 from tkinter import ttk
 from tkinter import messagebox
 
@@ -62,6 +58,7 @@ def query():
     conn.close()
 
 
+# Search through the database.
 def search_box(event):
     # Add database data to the treeview.
     global count
@@ -79,7 +76,6 @@ def search_box(event):
         records = my_cursor.fetchall()
         # Loop through the records and
         for x in records:
-            print(x)
             if (typed.lower() in str(x[0]).lower()
                     or typed.lower() in str(x[1]).lower()
                     or typed.lower() in str(x[2]).lower()
@@ -290,8 +286,6 @@ def clear_boxes():
     email_entry.delete(0, END)
     username_entry.delete(0, END)
     pw_entry.delete(0, END)
-
-
 
 
 # Remove records.
