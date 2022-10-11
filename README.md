@@ -1,7 +1,10 @@
 # TKINTER-PW_Storage
-A program that stores your passwords.
+A program that stores your passwords into a sqlite database.
+Find the needed libraries in requirements.txt
 
 HOW TO USE:
+
+- Clone the contents to your PC.
 - First you need to add data to the database.
 - USER column: this is the name of the user that uses the app.
 - WEBSITE column: this is the website that you want to store the password for.
