@@ -5,6 +5,7 @@ Find the needed libraries in requirements.txt
 HOW TO USE:
 
 - Clone the contents to your PC.
+- Run pwd.py
 - First you need to add data to the database.
 - USER column: this is the name of the user that uses the app.
 - WEBSITE column: this is the website that you want to store the password for.
