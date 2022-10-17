@@ -31,6 +31,12 @@ my_cursor.execute("""CREATE TABLE IF NOT EXISTS users (
 	username text,
 	password text)""")
 
+# # Show table.
+# my_cursor.execute("SELECT * FROM users")
+# # print(my_cursor.description)
+# for i in my_cursor.description:
+#     print(i)
+
 
 # Query the database.
 def query():
@@ -122,73 +128,7 @@ def search_box(event):
         conn.close()
 
 
-# # Show table.
-# my_cursor.execute("SELECT * FROM users")
-# # print(my_cursor.description)
-# for i in my_cursor.description:
-#     print(i)
 
-
-# Get current working directory
-cwd = os.getcwd()
-root = Tk()
-root.title('PW storage')
-root.iconbitmap(os.path.join(cwd, 'images\\pw.ico'))
-root.minsize(width=1000, height=600)
-root.geometry('1000x600')
-style = ttk.Style()
-style.theme_use("default")
-
-# Configure treeview color.
-style.configure("Treeview",
-                background= '#D3D3D3',
-                foregriound= "black",
-                rowheight=25,
-                fieldbackground='#D3D3D3'
-                )
-style.map("Treeview",
-          background=[('selected', '#347083')])
-
-# Create a treeview frame.
-tree_frame = Frame(root)
-tree_frame.pack(fill="x", padx=20, pady=20)
-
-# Create a treeview Scrollbar.
-tree_scroll = Scrollbar(tree_frame)
-tree_scroll.pack(side=RIGHT, fill=Y)
-
-# Create the Treeview and pack it on the screen.
-my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode='extended')
-my_tree.pack(fill="x")
-
-# Configure the Scrollbar.
-tree_scroll.config(command=my_tree.yview)
-
-# Connect to SQLite3.
-conn = sqlite3.connect('pw_storage.db')
-my_cursor = conn.cursor()
-# Define the columns of the treeview.
-table = my_cursor.execute("SELECT * FROM users")
-data = my_cursor.fetchall()
-
-columns = ["ID"]
-for i in range(0, len(table.description)):
-    columns.append(table.description[i][0])
-my_tree['columns'] = (columns)
-
-# Format the columns.
-my_tree.column("#0", width=0, stretch=NO)
-for i in range(0, len(table.description)):
-    my_tree.column(table.description[i][0], anchor=W, width=140)
-
-# Create the headings.
-my_tree.heading("#0", text="", anchor=W)
-for i in range(0, len(columns)):
-    my_tree.heading(columns[i], text=str(columns[i]).upper(), anchor=W)
-
-# Create striped row tags.
-my_tree.tag_configure('oddrow', background="white")
-my_tree.tag_configure('evenrow', background="lightblue")
 
 
 # Select a record.
@@ -339,6 +279,74 @@ def remove_all_records():
     else:
         pass
 
+
+# Get current working directory.
+cwd = os.getcwd()
+# Create a window.
+root = Tk()
+# Set a window title.
+root.title('PW storage')
+# Set an icon.
+root.iconbitmap(os.path.join(cwd, 'images\\pw.ico'))
+# Set the min size.
+root.minsize(width=1000, height=600)
+# Set the geometry.
+root.geometry('1000x600')
+# Setup a style.
+style = ttk.Style()
+# Seleect a theme.
+style.theme_use("default")
+
+# Configure treeview color.
+style.configure("Treeview",
+                background= '#D3D3D3',
+                foreground= "black",
+                rowheight=25,
+                fieldbackground='#D3D3D3'
+                )
+style.map("Treeview",
+          background=[('selected', '#347083')])
+
+# Create a treeview frame.
+tree_frame = Frame(root)
+tree_frame.pack(fill="x", padx=20, pady=20)
+
+# Create a treeview Scrollbar.
+tree_scroll = Scrollbar(tree_frame)
+tree_scroll.pack(side=RIGHT, fill=Y)
+
+# Create the Treeview and pack it on the screen.
+my_tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode='extended')
+my_tree.pack(fill="x")
+
+# Configure the Scrollbar.
+tree_scroll.config(command=my_tree.yview)
+
+# Connect to SQLite3.
+conn = sqlite3.connect('pw_storage.db')
+my_cursor = conn.cursor()
+# Define the columns of the treeview.
+table = my_cursor.execute("SELECT * FROM users")
+data = my_cursor.fetchall()
+
+columns = ["ID"]
+for i in range(0, len(table.description)):
+    columns.append(table.description[i][0])
+my_tree['columns'] = (columns)
+
+# Format the columns.
+my_tree.column("#0", width=0, stretch=NO)
+for i in range(0, len(table.description)):
+    my_tree.column(table.description[i][0], anchor=W, width=140)
+
+# Create the headings.
+my_tree.heading("#0", text="", anchor=W)
+for i in range(0, len(columns)):
+    my_tree.heading(columns[i], text=str(columns[i]).upper(), anchor=W)
+
+# Create striped row tags.
+my_tree.tag_configure('oddrow', background="white")
+my_tree.tag_configure('evenrow', background="lightblue")
 
 # Add record Entry Boxes.
 data_frame = LabelFrame(root, text="Selected Record")
